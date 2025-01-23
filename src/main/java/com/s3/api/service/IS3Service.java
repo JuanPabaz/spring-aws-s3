@@ -17,7 +17,7 @@ public interface IS3Service {
 
     void downloadFile(String bucketName, String key) throws IOException;
 
-    void generatePresignedUploadUrl(String bucketName, String key, Duration duration);
+    String generatePresignedUploadUrl(String bucketName, String key, Duration duration);
 
     void generatePresignedDownloadUrl(String bucketName, String key, Duration duration);
 }
