@@ -19,5 +19,5 @@ public interface IS3Service {
 
     String generatePresignedUploadUrl(String bucketName, String key, Duration duration);
 
-    void generatePresignedDownloadUrl(String bucketName, String key, Duration duration);
+    String generatePresignedDownloadUrl(String bucketName, String key, Duration duration);
 }
