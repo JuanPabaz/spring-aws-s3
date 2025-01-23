@@ -6,10 +6,14 @@ import org.springframework.stereotype.Service;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.*;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
@@ -23,6 +27,9 @@ public class S3ServiceImpl implements IS3Service {
 
     @Autowired
     private S3Client s3Client;
+
+    @Autowired
+    private S3Presigner s3Presigner;
 
     @Override
     public String createBucket(String bucketName) {
@@ -92,8 +99,20 @@ public class S3ServiceImpl implements IS3Service {
     }
 
     @Override
-    public void generatePresignedUploadUrl(String bucketName, String key, Duration duration) {
+    public String generatePresignedUploadUrl(String bucketName, String key, Duration duration) {
+        PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+                .bucket(bucketName)
+                .key(key)
+                .build();
 
+        PutObjectPresignRequest presignRequest = PutObjectPresignRequest.builder()
+                .signatureDuration(duration)
+                .putObjectRequest(putObjectRequest)
+                .build();
+
+        PresignedPutObjectRequest presignedPutObject = this.s3Presigner.presignPutObject(presignRequest);
+        URL presignedUrl = presignedPutObject.url();
+        return presignedUrl.toString();
     }
 
     @Override
