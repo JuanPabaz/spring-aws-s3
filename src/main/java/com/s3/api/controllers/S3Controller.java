@@ -65,4 +65,10 @@ public class S3Controller {
         }
     }
 
+    @GetMapping("/download")
+    public ResponseEntity<String> downloadFile(@RequestParam String bucketName,@RequestParam String key) throws IOException {
+        this.s3Service.downloadFile(bucketName,key);
+        return ResponseEntity.ok("Archivo descargado exitosamente");
+    }
+
 }
