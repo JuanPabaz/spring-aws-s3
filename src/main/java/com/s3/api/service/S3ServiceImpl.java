@@ -3,21 +3,23 @@ package com.s3.api.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.*;
 
-import javax.print.attribute.standard.Destination;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class S3ServiceImpl implements IS3Service {
 
     @Value("${spring.destination.folder}")
-    private Destination destinationFolder;
+    private String destinationFolder;
 
     @Autowired
     private S3Client s3Client;
@@ -63,7 +65,30 @@ public class S3ServiceImpl implements IS3Service {
 
     @Override
     public void downloadFile(String bucketName, String key) throws IOException {
+        GetObjectRequest getObjectRequest = GetObjectRequest.builder()
+                .bucket(bucketName)
+                .key(key)
+                .build();
 
+        ResponseBytes<GetObjectResponse> getObjectResponseResponseBytes = this.s3Client.getObjectAsBytes(getObjectRequest);
+
+        String fileName;
+        if (key.contains("/")) {
+            fileName = key.substring(key.lastIndexOf('/'));
+        }else {
+            fileName = key;
+        }
+
+        String filePath = Paths.get(destinationFolder,fileName).toString();
+
+        File file = new File(filePath);
+        file.getParentFile().mkdir();
+
+        try(FileOutputStream fos = new FileOutputStream(file)){
+            fos.write(getObjectResponseResponseBytes.asByteArray());
+        }catch (IOException e){
+            throw new IOException("Error al descargar el archivo. Causa: " +e.getMessage());
+        }
     }
 
     @Override
